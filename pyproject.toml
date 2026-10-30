@@ -1,0 +1,10 @@
+[project]
+name = "stella"
+version = "1.0.0"
+description = "Stella Eternal OS"
+requires-python = ">=3.9"
+dependencies = ["flet"]
+
+[tool.flet]
+product = "Stella"
+org = "com.abir"
