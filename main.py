@@ -6,29 +6,43 @@ import flet as ft
 
 
 def _code_ok():
-    """বিল্ডের সময় তৈরি সিল (_seal.py)-এর সাথে কোড মেলে কি না দেখে।"""
+    """(ঠিক আছে?, কারণ) ফেরত দেয়। বিল্ডের সময় তৈরি _seal.py-র সাথে কোড মেলায়।"""
+    import hashlib
+    import sys
+
+    base = os.path.dirname(os.path.abspath(__file__))
+    if base not in sys.path:
+        sys.path.insert(0, base)
     try:
-        import hashlib
-
-        base = os.path.dirname(os.path.abspath(__file__))
         from _seal import SEAL
-
-        h = hashlib.sha256()
-        for name in ("stella.py", "eternal.py"):
+    except Exception as ex:
+        try:
+            files = ", ".join(sorted(os.listdir(base))[:15])
+        except Exception:
+            files = "?"
+        return False, f"_seal পড়া যায়নি: {type(ex).__name__}: {ex}\nফোল্ডার: {base}\nফাইল: {files}"
+    h = hashlib.sha256()
+    for name in ("stella.py", "eternal.py"):
+        try:
             with open(os.path.join(base, name), "rb") as f:
                 h.update(hashlib.sha256(f.read().replace(b"\r\n", b"\n")).digest())
-        return h.hexdigest() == SEAL
-    except Exception:
-        return False
+        except Exception as ex:
+            return False, f"{name} পড়া যায়নি: {type(ex).__name__}: {ex}"
+    got = h.hexdigest()
+    if got != SEAL:
+        return False, f"ফিঙ্গারপ্রিন্ট মেলেনি\nপাওয়া: {got[:12]}\nআশা: {SEAL[:12]}"
+    return True, ""
 
 
 def main(page: ft.Page):
-    if not _code_ok():
+    ok, why = _code_ok()
+    if not ok:
         page.bgcolor = "#0b0f1a"
+        page.padding = 16
         page.add(ft.Text(
-            "🚫 অ্যাপের কোড পরিবর্তিত বা অসম্পূর্ণ। নিরাপত্তার কারণে চালু হবে না।\n"
-            "আপনি নিজে কিছু না বদলে থাকলে আসল APK আবার ইনস্টল করুন।",
-            color="#fca5a5", size=16))
+            "🚫 অ্যাপের কোড পরিবর্তিত বা অসম্পূর্ণ। নিরাপত্তার কারণে চালু হবে না।\n\n"
+            + why,
+            color="#fca5a5", size=14, selectable=True))
         return
     import stella
 
