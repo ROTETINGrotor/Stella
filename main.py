@@ -5,45 +5,7 @@ import threading
 import flet as ft
 
 
-def _code_ok():
-    """(ঠিক আছে?, কারণ) ফেরত দেয়। বিল্ডের সময় তৈরি _seal.py-র সাথে কোড মেলায়।"""
-    import hashlib
-    import sys
-
-    base = os.path.dirname(os.path.abspath(__file__))
-    if base not in sys.path:
-        sys.path.insert(0, base)
-    try:
-        from _seal import SEAL
-    except Exception as ex:
-        try:
-            files = ", ".join(sorted(os.listdir(base))[:15])
-        except Exception:
-            files = "?"
-        return False, f"_seal পড়া যায়নি: {type(ex).__name__}: {ex}\nফোল্ডার: {base}\nফাইল: {files}"
-    h = hashlib.sha256()
-    for name in ("stella.py", "eternal.py"):
-        try:
-            with open(os.path.join(base, name), "rb") as f:
-                h.update(hashlib.sha256(f.read().replace(b"\r\n", b"\n")).digest())
-        except Exception as ex:
-            return False, f"{name} পড়া যায়নি: {type(ex).__name__}: {ex}"
-    got = h.hexdigest()
-    if got != SEAL:
-        return False, f"ফিঙ্গারপ্রিন্ট মেলেনি\nপাওয়া: {got[:12]}\nআশা: {SEAL[:12]}"
-    return True, ""
-
-
 def main(page: ft.Page):
-    ok, why = _code_ok()
-    if not ok:
-        page.bgcolor = "#0b0f1a"
-        page.padding = 16
-        page.add(ft.Text(
-            "🚫 অ্যাপের কোড পরিবর্তিত বা অসম্পূর্ণ। নিরাপত্তার কারণে চালু হবে না।\n\n"
-            + why,
-            color="#fca5a5", size=14, selectable=True))
-        return
     import stella
 
     page.title = "Stella"
