@@ -1,6 +1,4 @@
-name: Build APK
-on:
-  workflow_dispatch:
+workflow_dispatch:
   push:
     branches: [main]
 
@@ -13,7 +11,6 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install flet
-      - run: python make_seal.py
       - name: Build APK
         shell: bash {0}
         run: yes | flet build apk
